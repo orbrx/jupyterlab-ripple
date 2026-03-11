@@ -110,6 +110,7 @@ try:
                 if isinstance(_tgt, _ast.Name):
                     _top_defs.add(_tgt.id)
     _defs -= (_comp_targets - _top_defs)
+    _refs -= (_comp_targets - _top_defs)
     # Remove self-defined refs and builtins
     import builtins as _builtins
     _refs -= _defs
@@ -136,35 +137,41 @@ export async function analyzeCell(
 ): Promise<IAnalysisResult> {
   const code = buildAnalysisCode(source);
 
-  return new Promise<IAnalysisResult>((resolve, reject) => {
+  return new Promise<IAnalysisResult>(resolve => {
     const future = kernel.requestExecute({
       code,
       silent: true,
       store_history: false
     });
 
-    let result: IAnalysisResult = { defs: [], refs: [] };
+    let stdout = '';
 
     future.onIOPub = (msg: KernelMessage.IIOPubMessage) => {
       if (msg.header.msg_type === 'stream') {
         const content = msg.content as KernelMessage.IStreamMsg['content'];
         if (content.name === 'stdout') {
-          try {
-            const parsed = JSON.parse(content.text);
-            result = {
-              defs: parsed.defs ?? [],
-              refs: parsed.refs ?? []
-            };
-          } catch {
-            console.warn('Ripple: Failed to parse AST analysis result');
-          }
+          stdout += content.text;
         }
       }
     };
 
     future.done
       .then(() => {
-        resolve(result);
+        const trimmed = stdout.trim();
+        if (!trimmed) {
+          resolve({ defs: [], refs: [] });
+          return;
+        }
+        try {
+          const parsed = JSON.parse(trimmed);
+          resolve({
+            defs: parsed.defs ?? [],
+            refs: parsed.refs ?? []
+          });
+        } catch {
+          console.warn('Ripple: Failed to parse AST analysis result:', trimmed);
+          resolve({ defs: [], refs: [] });
+        }
       })
       .catch((err: unknown) => {
         console.warn('Ripple: AST analysis failed', err);

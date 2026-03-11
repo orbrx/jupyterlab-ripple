@@ -7,6 +7,7 @@ import type {
 } from '@jupyterlab/application';
 import { INotebookCellExecutor, INotebookTracker } from '@jupyterlab/notebook';
 import type { NotebookPanel } from '@jupyterlab/notebook';
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { ITranslator } from '@jupyterlab/translation';
 import { ReactiveCellExecutor } from './reactiveCellExecutor';
 import { ReactiveStateManager } from './reactiveState';
@@ -53,23 +54,39 @@ const uiPlugin: JupyterFrontEndPlugin<void> = {
     'Provides the Ripple reactive notebook UI: toggle button and dependency indicators.',
   autoStart: true,
   requires: [INotebookTracker],
-  optional: [ITranslator],
+  optional: [ITranslator, ISettingRegistry],
   activate: (
     app: JupyterFrontEnd,
     tracker: INotebookTracker,
-    translator: ITranslator | null
+    translator: ITranslator | null,
+    settingRegistry: ISettingRegistry | null
   ): void => {
-    // Register the toggle command.
+    let enabledByDefault = true;
+
+    if (settingRegistry) {
+      void settingRegistry
+        .load('jupyterlab-ripple:executor')
+        .then(settings => {
+          enabledByDefault = settings.get('enabled').composite as boolean;
+          settings.changed.connect(() => {
+            enabledByDefault = settings.get('enabled').composite as boolean;
+          });
+        })
+        .catch(() => {
+          console.warn('Ripple: Could not load settings, using defaults.');
+        });
+    }
+
+    stateManager.setEnabledDefault(() => enabledByDefault);
+
     registerToggleCommand(app, tracker, stateManager, translator ?? undefined);
 
-    // Set up each notebook panel as it is created.
     tracker.widgetAdded.connect(
       (_sender: INotebookTracker, panel: NotebookPanel) => {
         setupNotebookPanel(app, panel);
       }
     );
 
-    // Also set up any already-open notebooks.
     tracker.forEach((panel: NotebookPanel) => {
       setupNotebookPanel(app, panel);
     });

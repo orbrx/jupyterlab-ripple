@@ -21,19 +21,77 @@ import type { ICellAnalysis, IDependencyGraph, IVariableConflict } from './dag';
  * Per-notebook reactive state.
  */
 export class ReactiveNotebookState {
-  constructor(panel: NotebookPanel) {
+  constructor(panel: NotebookPanel, enabledByDefault = true) {
     this._panel = panel;
     this._analysisCache = new Map();
     this._graph = null;
-    this._enabled = false;
+    this._enabled = enabledByDefault;
     this._staleCells = new Set();
     this._executedCells = new Set();
     this._cycleCells = new Set();
     this._conflictCells = new Set();
     this._debounceTimers = new Map();
+    this._activeRunCells = 0;
 
-    // Listen for cell content changes to mark cells as stale.
     this._connectCellListeners();
+    this._connectKernelListeners();
+
+    if (this._enabled) {
+      void this._scheduleInitialBuild();
+    }
+  }
+
+  /**
+   * Schedule the initial graph build for when the kernel first becomes idle.
+   * This avoids racing with Run All or other user-initiated executions that
+   * happen immediately after opening the notebook.
+   *
+   * If a cell execution starts before the kernel goes idle (e.g. the user
+   * clicks Run All while the kernel is still starting), the build is skipped
+   * -- the normal per-cell analysis in runCell will populate the graph
+   * incrementally instead.
+   */
+  private async _scheduleInitialBuild(): Promise<void> {
+    try {
+      const ctx = this._panel.context;
+      await ctx.ready;
+      await ctx.sessionContext.ready;
+
+      if (!this._enabled || this._activeRunCells > 0) {
+        return;
+      }
+
+      await this._waitForKernelIdle();
+
+      if (!this._enabled || this._activeRunCells > 0 || this._wasBatch) {
+        return;
+      }
+
+      await this.rebuildAll();
+      this._stateChanged.emit(void 0);
+    } catch {
+      // Kernel unavailable or panel disposed -- silently skip.
+    }
+  }
+
+  /**
+   * Return a promise that resolves once the kernel status reaches 'idle'.
+   */
+  private _waitForKernelIdle(): Promise<void> {
+    const sessionContext = this._panel.context.sessionContext;
+    const kernel = sessionContext.session?.kernel;
+    if (kernel?.status === 'idle') {
+      return Promise.resolve();
+    }
+    return new Promise<void>(resolve => {
+      const onStatus = (_sender: unknown, status: Kernel.Status): void => {
+        if (status === 'idle') {
+          sessionContext.statusChanged.disconnect(onStatus);
+          resolve();
+        }
+      };
+      sessionContext.statusChanged.connect(onStatus);
+    });
   }
 
   /**
@@ -90,6 +148,31 @@ export class ReactiveNotebookState {
    */
   get panel(): NotebookPanel {
     return this._panel;
+  }
+
+  /**
+   * Whether the current group of runCell calls is a batch (e.g. Run All).
+   * Once two or more calls overlap, every call in the group is considered
+   * part of the batch -- including the last one to finish.
+   */
+  get isRunningBatch(): boolean {
+    return this._wasBatch;
+  }
+
+  /**
+   * Increment the active runCell counter. Returns a disposer function.
+   */
+  enterRunCell(): () => void {
+    this._activeRunCells++;
+    if (this._activeRunCells > 1) {
+      this._wasBatch = true;
+    }
+    return () => {
+      this._activeRunCells--;
+      if (this._activeRunCells === 0) {
+        this._wasBatch = false;
+      }
+    };
   }
 
   /**
@@ -195,6 +278,8 @@ export class ReactiveNotebookState {
 
   /**
    * Mark downstream cells of the given cell as stale.
+   * Only cells that have been executed at least once are marked --
+   * a cell that has never run cannot be "out of date".
    */
   markDownstreamStale(cellId: string): void {
     if (!this._graph) {
@@ -202,7 +287,9 @@ export class ReactiveNotebookState {
     }
     const downstream = getDownstreamCells(cellId, this._graph);
     for (const id of downstream) {
-      this._staleCells.add(id);
+      if (this._executedCells.has(id)) {
+        this._staleCells.add(id);
+      }
     }
     this._stateChanged.emit(void 0);
   }
@@ -229,6 +316,25 @@ export class ReactiveNotebookState {
   }
 
   /**
+   * Whether all upstream dependencies of a cell have been executed.
+   */
+  allUpstreamExecuted(cellId: string): boolean {
+    if (!this._graph) {
+      return false;
+    }
+    const upstream = this._graph.upstreamEdges.get(cellId);
+    if (!upstream || upstream.size === 0) {
+      return true;
+    }
+    for (const depId of upstream) {
+      if (!this._executedCells.has(depId)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
    * Dispose of this state.
    */
   dispose(): void {
@@ -237,7 +343,51 @@ export class ReactiveNotebookState {
     }
     this._debounceTimers.clear();
     this._executedCells.clear();
+    this._disconnectKernelListeners();
     Signal.clearData(this);
+  }
+
+  /**
+   * Connect to kernel status changes to detect restarts.
+   */
+  private _connectKernelListeners(): void {
+    const sessionContext = this._panel.context.sessionContext;
+    sessionContext.statusChanged.connect(this._onKernelStatus, this);
+    sessionContext.kernelChanged.connect(this._onKernelChanged, this);
+  }
+
+  /**
+   * Disconnect kernel listeners.
+   */
+  private _disconnectKernelListeners(): void {
+    const sessionContext = this._panel.context.sessionContext;
+    sessionContext.statusChanged.disconnect(this._onKernelStatus, this);
+    sessionContext.kernelChanged.disconnect(this._onKernelChanged, this);
+  }
+
+  /**
+   * Clear execution tracking when the kernel restarts.
+   */
+  private _onKernelStatus(
+    _sender: unknown,
+    status: Kernel.Status
+  ): void {
+    if (status === 'restarting' || status === 'autorestarting') {
+      this._executedCells.clear();
+      this._staleCells.clear();
+      this._stateChanged.emit(void 0);
+    }
+  }
+
+  /**
+   * Clear execution tracking when the kernel changes.
+   */
+  private _onKernelChanged(): void {
+    this._executedCells.clear();
+    this._staleCells.clear();
+    this._analysisCache.clear();
+    this._graph = null;
+    this._stateChanged.emit(void 0);
   }
 
   /**
@@ -284,6 +434,10 @@ export class ReactiveNotebookState {
         this._debounceTimers.delete(cellId);
         const source = cellModel.sharedModel.getSource();
         if (source.trim() && cellModel.type === 'code') {
+          const cached = this._analysisCache.get(cellId);
+          if (cached && cached.sourceHash === hashSource(source)) {
+            return;
+          }
           void this.analyzeSingleCell(cellId, source).then(() => {
             this.markDownstreamStale(cellId);
           });
@@ -362,6 +516,8 @@ export class ReactiveNotebookState {
 
   private _panel: NotebookPanel;
   private _enabled: boolean;
+  private _activeRunCells: number;
+  private _wasBatch = false;
   private _graph: IDependencyGraph | null;
   private _analysisCache: Map<string, ICellAnalysis>;
   private _staleCells: Set<string>;
@@ -378,12 +534,19 @@ export class ReactiveNotebookState {
  */
 export class ReactiveStateManager {
   /**
+   * Set a callback that returns the current default for the enabled setting.
+   */
+  setEnabledDefault(getter: () => boolean): void {
+    this._enabledDefault = getter;
+  }
+
+  /**
    * Get or create the reactive state for a notebook panel.
    */
   getOrCreateState(panel: NotebookPanel): ReactiveNotebookState {
     let state = this._states.get(panel);
     if (!state) {
-      state = new ReactiveNotebookState(panel);
+      state = new ReactiveNotebookState(panel, this._enabledDefault());
       this._states.set(panel, state);
 
       // Clean up when the panel is disposed.
@@ -423,4 +586,5 @@ export class ReactiveStateManager {
   }
 
   private _states = new Map<NotebookPanel, ReactiveNotebookState>();
+  private _enabledDefault: () => boolean = () => true;
 }
