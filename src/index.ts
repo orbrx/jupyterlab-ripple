@@ -16,6 +16,7 @@ import {
   clearDependencyIndicators
 } from './ui/dependencyIndicators';
 import { registerToggleCommand, addToolbarButton } from './ui/toggleButton';
+import { registerRippleTour } from './ui/tour';
 
 /**
  * Shared state manager singleton.
@@ -92,6 +93,8 @@ const uiPlugin: JupyterFrontEndPlugin<void> = {
     });
 
     console.warn('Ripple: UI plugin activated.');
+
+    void registerRippleTour(app);
   }
 };
 
