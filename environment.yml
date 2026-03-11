@@ -5,5 +5,4 @@ channels:
 dependencies:
   - xeus-python
   - pip:
-    - --extra-index-url https://test.pypi.org/simple/
     - jupyterlab-ripple
