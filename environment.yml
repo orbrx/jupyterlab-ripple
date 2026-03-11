@@ -1,0 +1,9 @@
+name: ripple-test
+channels:
+  - emscripten-forge
+  - conda-forge
+dependencies:
+  - xeus-python
+  - pip:
+    - --extra-index-url https://test.pypi.org/simple/
+    - jupyterlab-ripple
