@@ -1,0 +1,95 @@
+/*
+ * Copyright (c) Orange Bricks
+ * Distributed under the terms of the MIT License.
+ *
+ * Reactive Notebook Extension Styles
+ */
+
+/*
+ * Dependency indicator borders (left edge of cell)
+ */
+
+.jp-reactive-upstream {
+  border-left: 3px solid var(--jp-brand-color1, #2196f3) !important;
+}
+
+.jp-reactive-downstream {
+  border-left: 3px solid var(--jp-success-color1, #4caf50) !important;
+}
+
+.jp-reactive-stale {
+  border-left: 3px solid var(--jp-warn-color1, #ff9800) !important;
+}
+
+/* Stale cells also get a subtle background tint */
+.jp-reactive-stale .jp-InputArea {
+  background: color-mix(
+    in srgb,
+    var(--jp-warn-color3, #fff3e0) 20%,
+    transparent
+  );
+}
+
+.jp-reactive-conflict {
+  border-left: 3px solid var(--jp-error-color1, #f44336) !important;
+}
+
+.jp-reactive-cycle {
+  border-left: 3px solid var(--jp-error-color1, #f44336) !important;
+}
+
+.jp-reactive-cycle .jp-InputArea {
+  background: color-mix(
+    in srgb,
+    var(--jp-error-color3, #ffebee) 15%,
+    transparent
+  );
+}
+
+/*
+ * Toolbar reactive toggle widget (button with visual checkbox, right side)
+ */
+
+.jp-reactive-toggle-widget {
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+  border-left: 1px solid var(--jp-border-color2, #e0e0e0);
+}
+
+.jp-reactive-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 4px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: var(--jp-ui-font-size1, 13px);
+  font-family: var(--jp-ui-font-family);
+  user-select: none;
+  white-space: nowrap;
+  border-radius: 3px;
+}
+
+.jp-reactive-toggle-btn:hover {
+  background: var(--jp-layout-color2, #eeeeee);
+}
+
+.jp-reactive-checkbox {
+  width: 13px;
+  height: 13px;
+  margin: 0;
+  pointer-events: none;
+  accent-color: var(--jp-brand-color1, #2196f3);
+  flex-shrink: 0;
+}
+
+.jp-reactive-text {
+  font-weight: 500;
+  color: var(--jp-ui-font-color2, #757575);
+}
+
+.jp-reactive-checkbox:checked ~ .jp-reactive-text {
+  color: var(--jp-success-color1, #4caf50);
+}

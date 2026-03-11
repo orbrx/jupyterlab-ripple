@@ -1,0 +1,15 @@
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
+_commit: v4.5.2
+_src_path: https://github.com/jupyterlab/extension-template
+author_email: konstantin@taletskiy.com
+author_name: Konstantin Taletskiy
+has_ai_rules: false
+has_binder: false
+has_settings: true
+kind: frontend
+labextension_name: jupyterlab-ripple
+project_short_description: 'Ripple: Reactive notebook execution in JupyterLab'
+python_name: jupyterlab_ripple
+repository: https://github.com/orbrx/jupyterlab-ripple
+test: true
+

@@ -1,0 +1,30 @@
+{
+  "jupyter.lab.setting-icon-class": "jp-RippleIcon",
+  "jupyter.lab.setting-icon-label": "Ripple",
+  "title": "Ripple",
+  "description": "Ripple: Reactive notebook execution settings.",
+  "type": "object",
+  "properties": {
+    "enabled": {
+      "type": "boolean",
+      "title": "Enable by default",
+      "description": "Whether reactive mode should be enabled by default for new notebooks.",
+      "default": true
+    },
+    "debounceInterval": {
+      "type": "number",
+      "title": "Analysis debounce interval (ms)",
+      "description": "Time to wait after the last keystroke before re-analyzing a cell.",
+      "default": 500,
+      "minimum": 100,
+      "maximum": 5000
+    },
+    "stopOnError": {
+      "type": "boolean",
+      "title": "Stop propagation on error",
+      "description": "Whether to stop executing downstream cells when a cell encounters an error.",
+      "default": true
+    }
+  },
+  "additionalProperties": false
+}
