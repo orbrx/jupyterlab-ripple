@@ -1,6 +1,14 @@
-# jupyterlab-ripple
+<h1 align="center">
+  <img src="https://github.com/user-attachments/assets/99abd1a7-7e99-4d20-b72c-892e0d7804d8" alt="Orange Bricks logo" height="64" valign="middle">
+  <span>jupyterlab-ripple</span>
+</h1>
+<p align="center">
+  Reactive execution for JupyterLab notebooks — automatically re-execute downstream cells when their dependencies change.
+</p>
 
 [![Github Actions Status](https://github.com/orbrx/jupyterlab-ripple/workflows/Build/badge.svg)](https://github.com/orbrx/jupyterlab-ripple/actions/workflows/build.yml)
+[![Try on notebook.link](https://img.shields.io/badge/notebook-link-e2d610?logo=jupyter&logoColor=white)](https://notebook.link/github.com/orbrx/jupyterlab-ripple/?path=demo.ipynb)
+[![labextensions.dev](https://img.shields.io/badge/labextensions-dev-blue)](https://labextensions.dev/?query=jupyterlab-ripple)
 
 **Ripple** brings reactive execution to JupyterLab notebooks.
 
