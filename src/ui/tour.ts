@@ -11,6 +11,9 @@ const TOUR_DEFINITION = {
   id: TOUR_ID,
   label: 'Ripple: Reactive Notebooks',
   hasHelpEntry: true,
+  options: {
+    disableScrolling: true
+  },
   steps: [
     {
       target: '#jp-main-dock-panel',
@@ -31,33 +34,34 @@ const TOUR_DEFINITION = {
       title: 'Reactive Mode Toggle'
     },
     {
-      target: '.jp-Notebook .jp-Cell:first-child',
+      target: '.jp-CodeCell',
       content:
-        'After running cells, Ripple analyzes variable definitions and ' +
-        'references to build a dependency graph. ' +
-        'A blue left border marks upstream cells that define variables ' +
-        'used by other cells.',
+        'After running cells, Ripple analyzes each code cell to find ' +
+        'which variables it defines and references, then builds a ' +
+        'dependency graph across the notebook. Cells that define ' +
+        'variables used elsewhere get a blue left border (upstream).',
       placement: 'left',
-      title: 'Upstream Cells (Blue Border)'
+      title: 'Upstream Cell (Blue Border)'
     },
     {
-      target: '.jp-Notebook .jp-Cell:nth-child(2)',
+      target: '.jp-CodeCell + .jp-CodeCell',
       content:
-        'A green left border marks downstream cells — they depend on ' +
-        'variables from upstream cells. When you re-run an upstream cell, ' +
-        'all its downstream dependents re-execute automatically.',
+        'Cells that reference variables from other cells are downstream ' +
+        'dependents. They get a green left border and re-execute ' +
+        'automatically when their upstream changes.',
       placement: 'left',
-      title: 'Downstream Cells (Green Border)'
+      title: 'Downstream Cell (Green Border)'
     },
     {
-      target: '.jp-Notebook',
+      target: '#jp-main-dock-panel',
       content:
-        'If you edit an upstream cell without running it, its downstream ' +
-        'dependents show an orange border to indicate they are stale. ' +
-        'A red border warns about conflicts (a variable defined in ' +
-        'multiple cells) or dependency cycles.',
-      placement: 'right',
-      title: 'Stale Cells & Conflicts'
+        'Colored left borders show dependency status at a glance:\n\n' +
+        '\u2022 Blue — upstream cell that defines variables used by others\n' +
+        '\u2022 Green — downstream cell that depends on upstream variables\n' +
+        '\u2022 Orange — stale cell whose upstream was edited but not re-run\n' +
+        '\u2022 Red — conflict (variable defined in multiple cells) or cycle',
+      placement: 'center',
+      title: 'Dependency Indicators'
     },
     {
       target: '#jp-main-dock-panel',
