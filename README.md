@@ -10,6 +10,7 @@
   <a href="https://github.com/orbrx/jupyterlab-ripple/actions/workflows/build.yml"><img src="https://github.com/orbrx/jupyterlab-ripple/workflows/Build/badge.svg" alt="Github Actions Status"></a>
   <a href="https://notebook.link/github.com/orbrx/jupyterlab-ripple/?path=demo.ipynb"><img src="https://img.shields.io/badge/notebook-link-e2d610?logo=jupyter&logoColor=white" alt="Try on notebook.link"></a>
   <a href="https://labextensions.dev/?query=jupyterlab-ripple"><img src="https://img.shields.io/badge/labextensions-dev-blue" alt="labextensions.dev"></a>
+  <a href="https://marketplace.orbrx.io/extensions/jupyterlab-ripple"><img src="https://marketplace.orbrx.io/api/badge/jupyterlab-ripple?metric=downloads&leftColor=%23555&rightColor=%23F37620&style=flat" alt="jupyterlab-ripple"></a>
 </p>
 
 When enabled, executing a cell automatically re-executes all downstream cells that depend on its variables — determined via Python AST analysis. No custom kernel required.
