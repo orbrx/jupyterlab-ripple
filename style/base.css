@@ -47,6 +47,20 @@
 }
 
 /*
+ * Degraded state: kernel unavailable but graph preserved.
+ * Dim all dependency indicators so the structure stays visible
+ * without implying that propagation is active.
+ */
+
+.jp-reactive-no-kernel .jp-reactive-upstream,
+.jp-reactive-no-kernel .jp-reactive-downstream,
+.jp-reactive-no-kernel .jp-reactive-stale,
+.jp-reactive-no-kernel .jp-reactive-conflict,
+.jp-reactive-no-kernel .jp-reactive-cycle {
+  opacity: 0.4;
+}
+
+/*
  * Toolbar reactive toggle widget (button with visual checkbox, right side)
  */
 

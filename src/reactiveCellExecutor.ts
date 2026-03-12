@@ -48,6 +48,7 @@ export class ReactiveCellExecutor implements INotebookCellExecutor {
 
       // Step 3: Re-analyze the executed cell.
       const cellId = options.cell.model.sharedModel.getId();
+      state.cancelPendingAnalysis(cellId);
       state.markExecuted(cellId);
       const source = options.cell.model.sharedModel.getSource();
       if (source.trim() && options.cell.model.type === 'code') {
@@ -65,6 +66,7 @@ export class ReactiveCellExecutor implements INotebookCellExecutor {
         id => state.hasBeenExecuted(id) && state.allUpstreamExecuted(id)
       );
       if (downstreamIds.length === 0) {
+        state.notifyChanged();
         return true;
       }
 
@@ -101,6 +103,7 @@ export class ReactiveCellExecutor implements INotebookCellExecutor {
         }
       }
 
+      state.notifyChanged();
       return true;
     } finally {
       leaveRunCell?.();

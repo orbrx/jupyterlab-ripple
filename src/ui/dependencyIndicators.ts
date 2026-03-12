@@ -14,6 +14,7 @@ const STALE_CLASS = 'jp-reactive-stale';
 const CONFLICT_CLASS = 'jp-reactive-conflict';
 const CYCLE_CLASS = 'jp-reactive-cycle';
 const REACTIVE_ENABLED_CLASS = 'jp-reactive-enabled';
+const NO_KERNEL_CLASS = 'jp-reactive-no-kernel';
 
 /**
  * All reactive CSS classes for easy removal.
@@ -46,6 +47,12 @@ export function updateDependencyIndicators(
     notebook.node.classList.remove(REACTIVE_ENABLED_CLASS);
   }
 
+  if (state.enabled && !state.hasKernel) {
+    notebook.node.classList.add(NO_KERNEL_CLASS);
+  } else {
+    notebook.node.classList.remove(NO_KERNEL_CLASS);
+  }
+
   for (const cell of notebook.widgets) {
     // Clear all reactive classes first.
     for (const cls of ALL_CLASSES) {
@@ -61,6 +68,13 @@ export function updateDependencyIndicators(
     const cellId = cell.model.sharedModel.getId();
     const analysis = graph.cells.get(cellId);
     if (!analysis) {
+      continue;
+    }
+
+    // Only show indicators for cells executed in this kernel session.
+    // After a restart, borders "light up" as the user runs each cell,
+    // making it visually clear which cells participate in propagation.
+    if (!state.hasBeenExecuted(cellId)) {
       continue;
     }
 
@@ -105,6 +119,7 @@ export function updateDependencyIndicators(
 export function clearDependencyIndicators(panel: NotebookPanel): void {
   const notebook = panel.content;
   notebook.node.classList.remove(REACTIVE_ENABLED_CLASS);
+  notebook.node.classList.remove(NO_KERNEL_CLASS);
 
   for (const cell of notebook.widgets) {
     for (const cls of ALL_CLASSES) {

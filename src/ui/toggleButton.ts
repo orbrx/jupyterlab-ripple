@@ -92,9 +92,10 @@ class ReactiveToggleWidget extends Widget {
     const text = document.createElement('span');
     text.className = 'jp-reactive-text';
     text.textContent = 'Reactive';
+    this._text = text;
 
     this._button.appendChild(this._checkbox);
-    this._button.appendChild(text);
+    this._button.appendChild(this._text);
     this.node.appendChild(this._button);
 
     this._button.addEventListener('click', () => {
@@ -111,10 +112,15 @@ class ReactiveToggleWidget extends Widget {
 
   private _onStateChanged(): void {
     this._checkbox.checked = this._state.enabled;
+    this._text.textContent =
+      this._state.enabled && !this._state.hasKernel
+        ? 'Reactive (no kernel)'
+        : 'Reactive';
   }
 
   private _app: JupyterFrontEnd;
   private _state: ReactiveNotebookState;
   private _button: HTMLButtonElement;
   private _checkbox: HTMLInputElement;
+  private _text: HTMLSpanElement;
 }

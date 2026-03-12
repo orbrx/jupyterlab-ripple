@@ -151,6 +151,13 @@ export class ReactiveNotebookState {
   }
 
   /**
+   * Whether a live kernel connection is available for AST analysis.
+   */
+  get hasKernel(): boolean {
+    return this._getKernel() !== null;
+  }
+
+  /**
    * Whether the current group of runCell calls is a batch (e.g. Run All).
    * Once two or more calls overlap, every call in the group is considered
    * part of the batch -- including the last one to finish.
@@ -170,7 +177,11 @@ export class ReactiveNotebookState {
     return () => {
       this._activeRunCells--;
       if (this._activeRunCells === 0) {
+        const wasBatch = this._wasBatch;
         this._wasBatch = false;
+        if (wasBatch) {
+          this._stateChanged.emit(void 0);
+        }
       }
     };
   }
@@ -302,6 +313,28 @@ export class ReactiveNotebookState {
   }
 
   /**
+   * Cancel any pending debounced analysis for a cell.
+   * Call before executing a cell to prevent a stale-marking race where
+   * an in-flight debounce timer re-marks downstream cells after
+   * propagation has already cleared them.
+   */
+  cancelPendingAnalysis(cellId: string): void {
+    const timer = this._debounceTimers.get(cellId);
+    if (timer) {
+      clearTimeout(timer);
+      this._debounceTimers.delete(cellId);
+    }
+  }
+
+  /**
+   * Emit the stateChanged signal so the UI repaints indicators.
+   * Call after batch modifications to stale/executed sets.
+   */
+  notifyChanged(): void {
+    this._stateChanged.emit(void 0);
+  }
+
+  /**
    * Record that a cell has been executed at least once in this session.
    */
   markExecuted(cellId: string): void {
@@ -366,7 +399,10 @@ export class ReactiveNotebookState {
   }
 
   /**
-   * Clear execution tracking when the kernel restarts.
+   * Reset execution tracking when the kernel restarts.
+   * The dependency graph (derived from source code) is preserved;
+   * only runtime state is cleared. A lazy rebuild is scheduled so
+   * the analysis cache is refreshed once the new kernel is idle.
    */
   private _onKernelStatus(
     _sender: unknown,
@@ -376,18 +412,25 @@ export class ReactiveNotebookState {
       this._executedCells.clear();
       this._staleCells.clear();
       this._stateChanged.emit(void 0);
+      if (this._enabled) {
+        void this._scheduleInitialBuild();
+      }
     }
   }
 
   /**
-   * Clear execution tracking when the kernel changes.
+   * Reset execution tracking when the kernel changes (shutdown / switch).
+   * The graph and analysis cache are kept so that dependency indicators
+   * remain visible in a dimmed state. A lazy rebuild is scheduled to
+   * refresh the analysis once a new kernel becomes available.
    */
   private _onKernelChanged(): void {
     this._executedCells.clear();
     this._staleCells.clear();
-    this._analysisCache.clear();
-    this._graph = null;
     this._stateChanged.emit(void 0);
+    if (this._enabled) {
+      void this._scheduleInitialBuild();
+    }
   }
 
   /**
