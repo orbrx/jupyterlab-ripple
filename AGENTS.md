@@ -46,15 +46,15 @@ The extension replaces JupyterLab's default `INotebookCellExecutor` with a react
 
 ### Core modules
 
-| File | Responsibility |
-|------|----------------|
-| `src/index.ts` | Plugin registration (two plugins: executor + UI) |
-| `src/dag.ts` | Dependency graph data structures, topological sort, cycle detection |
-| `src/analyzer.ts` | Kernel-side Python AST analysis via silent `requestExecute` |
-| `src/reactiveState.ts` | Per-notebook state management (analysis cache, graph, stale/conflict tracking) |
-| `src/reactiveCellExecutor.ts` | Custom cell executor wrapping `runCell` with reactive propagation |
-| `src/ui/toggleButton.ts` | Toolbar toggle button and command registration |
-| `src/ui/dependencyIndicators.ts` | CSS class management for cell dependency visualization |
+| File                             | Responsibility                                                                 |
+| -------------------------------- | ------------------------------------------------------------------------------ |
+| `src/index.ts`                   | Plugin registration (two plugins: executor + UI)                               |
+| `src/dag.ts`                     | Dependency graph data structures, topological sort, cycle detection            |
+| `src/analyzer.ts`                | Kernel-side Python AST analysis via silent `requestExecute`                    |
+| `src/reactiveState.ts`           | Per-notebook state management (analysis cache, graph, stale/conflict tracking) |
+| `src/reactiveCellExecutor.ts`    | Custom cell executor wrapping `runCell` with reactive propagation              |
+| `src/ui/toggleButton.ts`         | Toolbar toggle button and command registration                                 |
+| `src/ui/dependencyIndicators.ts` | CSS class management for cell dependency visualization                         |
 
 ### Key algorithms
 
@@ -83,6 +83,7 @@ The extension replaces JupyterLab's default `INotebookCellExecutor` with a react
 ## Settings Schema
 
 Extension settings are defined in `schema/plugin.json`:
+
 - `enabled`: whether reactive mode is on by default
 - `debounceInterval`: ms to wait before re-analyzing after keystrokes
 - `stopOnError`: whether to halt downstream propagation on cell error

@@ -114,10 +114,7 @@ describe('buildGraph', () => {
   });
 
   it('ignores analyses not present in cellOrder', () => {
-    const analyses = [
-      cell('A', ['x'], []),
-      cell('ORPHAN', ['y'], ['x'])
-    ];
+    const analyses = [cell('A', ['x'], []), cell('ORPHAN', ['y'], ['x'])];
     const graph = buildGraph(analyses, ['A']);
 
     expect(graph.cells.size).toBe(1);
@@ -130,10 +127,7 @@ describe('buildGraph', () => {
 // ---------------------------------------------------------------------------
 describe('getDownstreamCells', () => {
   it('returns single downstream cell', () => {
-    const analyses = [
-      cell('A', ['x'], []),
-      cell('B', ['y'], ['x'])
-    ];
+    const analyses = [cell('A', ['x'], []), cell('B', ['y'], ['x'])];
     const graph = buildGraph(analyses, ['A', 'B']);
 
     expect(getDownstreamCells('A', graph)).toEqual(['B']);
@@ -181,20 +175,14 @@ describe('getDownstreamCells', () => {
   });
 
   it('returns empty array when no downstream cells exist', () => {
-    const analyses = [
-      cell('A', ['x'], []),
-      cell('B', ['y'], [])
-    ];
+    const analyses = [cell('A', ['x'], []), cell('B', ['y'], [])];
     const graph = buildGraph(analyses, ['A', 'B']);
 
     expect(getDownstreamCells('A', graph)).toEqual([]);
   });
 
   it('does not include the trigger cell itself', () => {
-    const analyses = [
-      cell('A', ['x'], []),
-      cell('B', ['y'], ['x'])
-    ];
+    const analyses = [cell('A', ['x'], []), cell('B', ['y'], ['x'])];
     const graph = buildGraph(analyses, ['A', 'B']);
     const downstream = getDownstreamCells('A', graph);
 
@@ -230,10 +218,7 @@ describe('detectCycles', () => {
 
   it('detects a simple two-node cycle', () => {
     // A defines x, refs y; B defines y, refs x → A <-> B
-    const analyses = [
-      cell('A', ['x'], ['y']),
-      cell('B', ['y'], ['x'])
-    ];
+    const analyses = [cell('A', ['x'], ['y']), cell('B', ['y'], ['x'])];
     const graph = buildGraph(analyses, ['A', 'B']);
     const cycles = detectCycles(graph);
 
@@ -277,19 +262,13 @@ describe('detectCycles', () => {
 // ---------------------------------------------------------------------------
 describe('findConflicts', () => {
   it('returns empty when no conflicts exist', () => {
-    const analyses = [
-      cell('A', ['x'], []),
-      cell('B', ['y'], [])
-    ];
+    const analyses = [cell('A', ['x'], []), cell('B', ['y'], [])];
 
     expect(findConflicts(analyses)).toEqual([]);
   });
 
   it('detects a single variable conflict', () => {
-    const analyses = [
-      cell('A', ['x'], []),
-      cell('B', ['x'], [])
-    ];
+    const analyses = [cell('A', ['x'], []), cell('B', ['x'], [])];
     const conflicts = findConflicts(analyses);
 
     expect(conflicts).toHaveLength(1);

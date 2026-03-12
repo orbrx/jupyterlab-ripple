@@ -87,7 +87,7 @@
 }
 
 .jp-reactive-toggle-btn:hover {
-  background: var(--jp-layout-color2, #eeeeee);
+  background: var(--jp-layout-color2, #eee);
 }
 
 .jp-reactive-checkbox {

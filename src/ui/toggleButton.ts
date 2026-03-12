@@ -6,7 +6,10 @@ import type { INotebookTracker, NotebookPanel } from '@jupyterlab/notebook';
 import type { ITranslator } from '@jupyterlab/translation';
 import { nullTranslator } from '@jupyterlab/translation';
 import { Widget } from '@lumino/widgets';
-import type { ReactiveNotebookState, ReactiveStateManager } from '../reactiveState';
+import type {
+  ReactiveNotebookState,
+  ReactiveStateManager
+} from '../reactiveState';
 
 /**
  * Command ID for toggling reactivity.

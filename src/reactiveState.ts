@@ -404,10 +404,7 @@ export class ReactiveNotebookState {
    * only runtime state is cleared. A lazy rebuild is scheduled so
    * the analysis cache is refreshed once the new kernel is idle.
    */
-  private _onKernelStatus(
-    _sender: unknown,
-    status: Kernel.Status
-  ): void {
+  private _onKernelStatus(_sender: unknown, status: Kernel.Status): void {
     if (status === 'restarting' || status === 'autorestarting') {
       this._executedCells.clear();
       this._staleCells.clear();
