@@ -21,7 +21,7 @@ test('should emit activation console messages for both plugins', async ({
     logs.filter(s => s === 'Ripple: Activated reactive cell executor.')
   ).toHaveLength(1);
 
-  expect(
-    logs.filter(s => s === 'Ripple: UI plugin activated.')
-  ).toHaveLength(1);
+  expect(logs.filter(s => s === 'Ripple: UI plugin activated.')).toHaveLength(
+    1
+  );
 });
