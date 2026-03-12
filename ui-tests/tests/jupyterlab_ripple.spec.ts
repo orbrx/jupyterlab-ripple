@@ -6,7 +6,9 @@ import { expect, test } from '@jupyterlab/galata';
  */
 test.use({ autoGoto: false });
 
-test('should emit an activation console message', async ({ page }) => {
+test('should emit activation console messages for both plugins', async ({
+  page
+}) => {
   const logs: string[] = [];
 
   page.on('console', message => {
@@ -16,8 +18,10 @@ test('should emit an activation console message', async ({ page }) => {
   await page.goto();
 
   expect(
-    logs.filter(
-      s => s === 'JupyterLab extension jupyterlab-ripple is activated!'
-    )
+    logs.filter(s => s === 'Ripple: Activated reactive cell executor.')
+  ).toHaveLength(1);
+
+  expect(
+    logs.filter(s => s === 'Ripple: UI plugin activated.')
   ).toHaveLength(1);
 });
