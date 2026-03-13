@@ -83,7 +83,9 @@ async function runAllManually(page: IJupyterLabPageFixture): Promise<void> {
 }
 
 test.describe('Kernel Resiliency', () => {
-  test('stale clears after propagation', async ({ page }) => {
+  test('editing a cell marks dependents stale; re-running clears stale', async ({
+    page
+  }) => {
     await createTestNotebook(page);
 
     await page.notebook.run();
@@ -119,7 +121,7 @@ test.describe('Kernel Resiliency', () => {
   // is covered by the Jest unit tests for markExecuted/hasBeenExecuted and
   // the stale-propagation E2E test above.
 
-  test.fixme('kernel restart clears dependency indicators', async ({
+  test.fixme('restarting kernel removes upstream/downstream border indicators', async ({
     page
   }) => {
     await createTestNotebook(page);
@@ -144,7 +146,7 @@ test.describe('Kernel Resiliency', () => {
     expect(toolbarText).not.toContain('no kernel');
   });
 
-  test.fixme('borders light up incrementally after restart', async ({
+  test.fixme('running individual cells after restart progressively rebuilds dependency borders', async ({
     page
   }) => {
     await createTestNotebook(page);
@@ -168,7 +170,9 @@ test.describe('Kernel Resiliency', () => {
     expect(cell1ClassesAfter).toContain('jp-reactive-downstream');
   });
 
-  test.fixme('Run All restores all borders after restart', async ({ page }) => {
+  test.fixme('Run All Cells after restart restores all dependency borders at once', async ({
+    page
+  }) => {
     await createTestNotebook(page);
 
     await page.notebook.run();
@@ -188,7 +192,9 @@ test.describe('Kernel Resiliency', () => {
     ).toBe(true);
   });
 
-  test('kernel shutdown shows degraded state', async ({ page }) => {
+  test('shutting down the kernel adds no-kernel class and updates toolbar label', async ({
+    page
+  }) => {
     await createTestNotebook(page);
 
     await page.notebook.run();
@@ -208,7 +214,9 @@ test.describe('Kernel Resiliency', () => {
     expect(toolbarText?.toLowerCase()).toContain('no kernel');
   });
 
-  test.fixme('kernel returns after shutdown', async ({ page }) => {
+  test.fixme('executing a cell after shutdown auto-starts kernel and removes degraded state', async ({
+    page
+  }) => {
     await createTestNotebook(page);
 
     await page.notebook.run();
