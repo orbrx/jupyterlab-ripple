@@ -20,7 +20,6 @@ Install it, and reactivity is on from the start.
   <img src="https://github.com/user-attachments/assets/b911755d-8efe-4fff-841b-a5aeec179d86" alt="Ripple demo: change a variable and watch downstream cells update automatically" width="800">
 </p>
 
-
 ## Highlights
 
 - **Always in sync** — change a variable, downstream cells re-run automatically
