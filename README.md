@@ -17,8 +17,9 @@ No more hunting for stale outputs or manually replaying half the notebook.
 Install it, and reactivity is on from the start.
 
 <p align="center">
-  <img src="ripple-demo.gif" alt="Ripple demo: change a variable and watch downstream cells update automatically" width="800">
+  <img src="https://github.com/user-attachments/assets/b911755d-8efe-4fff-841b-a5aeec179d86" alt="Ripple demo: change a variable and watch downstream cells update automatically" width="800">
 </p>
+
 
 ## Highlights
 
