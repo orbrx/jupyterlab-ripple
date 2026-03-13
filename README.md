@@ -12,41 +12,77 @@
   <a href="https://labextensions.dev/extensions/jupyterlab-ripple"><img src="https://labextensions.dev/api/badge/jupyterlab-ripple?metric=downloads&leftColor=%23555&rightColor=%23F37620&style=flat" alt="jupyterlab-ripple"></a>
 </p>
 
-When enabled, executing a cell automatically re-executes all downstream cells that depend on its variables — determined via Python AST analysis. No custom kernel required.
+Run a cell, and Ripple automatically re-runs every cell that depends on it.
+No more hunting for stale outputs or manually replaying half the notebook.
+Install it, and reactivity is on from the start.
 
-## How It Works
+<p align="center">
+  <img src="ripple-demo.gif" alt="Ripple demo: change a variable and watch downstream cells update automatically" width="800">
+</p>
 
-1. Click the **Ripple** button in the notebook toolbar to enable reactive mode
-2. Edit and run a cell as usual
-3. All cells that reference variables defined by that cell automatically re-execute in dependency order
+## Highlights
 
-Ripple uses kernel-side `ast.parse()` to statically analyze each cell's variable definitions and references, building a directed acyclic graph (DAG) of cell dependencies. When a cell executes, its transitive downstream dependents are re-run in topological order.
+- **Always in sync** — change a variable, downstream cells re-run automatically
+- **Visual dependency map** — colored borders show upstream (blue), downstream (green), stale (amber), and conflict/cycle (red) cells at a glance
+- **Zero migration** — `pip install`, and it just works. Standard `ipykernel`, your existing `.ipynb` files, no custom kernel or new notebook format. Reactive by default.
+- **Cycle-safe** — circular dependencies are detected and flagged, never silently looped
+- **Per-notebook control** — toggle reactive mode independently for each notebook
 
-## Features
+## Why Ripple
 
-- **Automatic downstream execution** — change `x = 1` to `x = 2`, and every cell using `x` re-runs
-- **Dependency visualization** — colored left borders show each cell's role in the dependency graph:
-  - Blue: defines variables used by other cells (upstream)
-  - Green: depends on variables from other cells (downstream)
-  - Amber: stale — upstream changed but this cell hasn't re-run yet
-  - Red: variable conflict (defined in multiple cells) or dependency cycle
-- **Cycle detection** — circular dependencies are detected and flagged (not auto-executed)
-- **Variable conflict warnings** — variables defined in multiple cells are highlighted
-- **Per-notebook toggle** — enable/disable independently for each notebook
-- **No custom kernel** — works with standard ipykernel via silent execution
+Notebooks give you the freedom to run cells in any order, but that flexibility
+comes with a cost: forget to re-run a downstream cell and your outputs go stale.
+The longer the notebook, the easier it is to lose track. Ripple takes care of
+that for you.
 
-## Architecture
+Imagine three cells:
 
-| File                             | Purpose                                                                     |
-| -------------------------------- | --------------------------------------------------------------------------- |
-| `src/dag.ts`                     | Dependency graph, topological sort (Kahn's), cycle detection (Tarjan's SCC) |
-| `src/analyzer.ts`                | Kernel-side Python AST analysis via silent `requestExecute`                 |
-| `src/reactiveState.ts`           | Per-notebook state: analysis cache, graph, stale/conflict tracking          |
-| `src/reactiveCellExecutor.ts`    | Custom `INotebookCellExecutor` wrapping default `runCell`                   |
-| `src/ui/toggleButton.ts`         | Toolbar toggle and command registration                                     |
-| `src/ui/dependencyIndicators.ts` | CSS class management for visual cell indicators                             |
+```python
+# Cell 1
+x = 1
+```
 
-The extension replaces JupyterLab's default `INotebookCellExecutor` plugin, intercepting cell execution to add reactive propagation.
+```python
+# Cell 2
+y = x * 2
+```
+
+```python
+# Cell 3
+print(f"Result: {y}")
+```
+
+Change `x = 1` to `x = 10` and run Cell 1. Ripple re-executes Cell 2 and
+Cell 3 in dependency order — no manual re-running, no stale outputs.
+
+## Install
+
+Requires JupyterLab >= 4.0.0.
+
+```bash
+pip install jupyterlab_ripple
+```
+
+Or [try it online](https://notebook.link/github.com/orbrx/jupyterlab-ripple/?path=demo.ipynb) without installing anything.
+
+## Getting Started
+
+After installing, Ripple is active by default. Just work as you normally would:
+
+1. Edit and run a cell
+2. Watch every downstream cell update automatically
+
+To disable reactivity for a notebook, click the **Ripple** button in the toolbar.
+
+## Configuration
+
+Ripple exposes three settings in **Settings → Ripple** (or `schema/plugin.json`):
+
+| Setting            | Default  | Description                                                      |
+| ------------------ | -------- | ---------------------------------------------------------------- |
+| `enabled`          | `true`   | Whether reactive mode is on by default for new notebooks         |
+| `debounceInterval` | `500` ms | Time to wait after the last keystroke before re-analyzing a cell |
+| `stopOnError`      | `true`   | Whether to stop executing downstream cells when a cell errors    |
 
 ## Limitations
 
@@ -54,78 +90,34 @@ The extension replaces JupyterLab's default `INotebookCellExecutor` plugin, inte
 - **Magic commands** — `%` and `!` lines are stripped before AST analysis
 - **Dynamic code** — `exec()`, `eval()`, and metaprogramming may confuse the analyzer
 
-## Requirements
+<details>
+<summary><strong>How it works under the hood</strong></summary>
 
-- JupyterLab >= 4.0.0
+<br>
 
-## Install
+Ripple sends each cell's source to the kernel for static analysis using Python's
+`ast.parse()`, extracting variable definitions and references. From these it
+builds a dependency graph across all cells in the notebook. When you execute a
+cell, Ripple walks the graph to find every transitive downstream dependent and
+re-runs them in topological order — all through JupyterLab's standard execution
+machinery, no custom kernel needed.
 
-```bash
-pip install jupyterlab_ripple
-```
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full architecture, algorithms,
+and data-flow details.
+
+</details>
+
+## Contributing
+
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for
+development setup, architecture overview, code style, testing, and linting
+instructions.
 
 ## Uninstall
 
 ```bash
 pip uninstall jupyterlab_ripple
 ```
-
-## Contributing
-
-### Development install
-
-Note: You will need NodeJS to build the extension package.
-
-The `jlpm` command is JupyterLab's pinned version of
-[yarn](https://yarnpkg.com/) that is installed with JupyterLab. You may use
-`yarn` or `npm` in lieu of `jlpm` below.
-
-```bash
-# Clone the repo to your local environment
-# Change directory to the jupyterlab-ripple directory
-
-# Set up a virtual environment and install package in development mode
-python -m venv .venv
-source .venv/bin/activate
-pip install --editable "."
-
-# Link your development version of the extension with JupyterLab
-jupyter labextension develop . --overwrite
-
-# Rebuild extension Typescript source after making changes
-jlpm build
-```
-
-You can watch the source directory and run JupyterLab at the same time in different terminals to watch for changes in the extension's source and automatically rebuild the extension.
-
-```bash
-# Watch the source directory in one terminal, automatically rebuilding when needed
-jlpm watch
-# Run JupyterLab in another terminal
-jupyter lab
-```
-
-### Testing the extension
-
-#### Frontend tests
-
-This extension uses [Jest](https://jestjs.io/) for JavaScript code testing.
-
-```sh
-jlpm
-jlpm test
-```
-
-#### Integration tests
-
-This extension uses [Playwright](https://playwright.dev/docs/intro) for the integration tests (aka user level tests).
-More precisely, the JupyterLab helper [Galata](https://github.com/jupyterlab/jupyterlab/tree/master/galata) is used to handle testing the extension in JupyterLab.
-
-More information are provided within the [ui-tests](./ui-tests/README.md) README.
-
-### Packaging the extension
-
-See [RELEASE](RELEASE.md)
 
 ## License
 
