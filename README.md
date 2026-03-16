@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://github.com/orbrx/jupyterlab-ripple/actions/workflows/build.yml"><img src="https://github.com/orbrx/jupyterlab-ripple/workflows/Build/badge.svg" alt="Github Actions Status"></a>
-  <a href="https://notebook.link/github.com/orbrx/jupyterlab-ripple/?path=demo.ipynb"><img src="https://img.shields.io/badge/notebook-link-e2d610?logo=jupyter&logoColor=white" alt="Try on notebook.link"></a>
+  <a href="https://notebook.link/github/orbrx/jupyterlab-ripple/notebooks/?path=demo.ipynb"><img src="https://img.shields.io/badge/try_now-e2d610?logo=jupyter&logoColor=white" alt="Try now on notebook.link"></a>
   <a href="https://labextensions.dev/extensions/jupyterlab-ripple"><img src="https://labextensions.dev/api/badge/jupyterlab-ripple?metric=downloads&leftColor=%23555&rightColor=%23F37620&style=flat" alt="jupyterlab-ripple"></a>
 </p>
 
@@ -57,13 +57,13 @@ Cell 3 in dependency order — no manual re-running, no stale outputs.
 
 ## Install
 
-Requires JupyterLab >= 4.0.0.
+Works with JupyterLab >= 4.0.0 and Jupyter Notebook >= 7.0.0.
 
 ```bash
 pip install jupyterlab_ripple
 ```
 
-Or [try it online](https://notebook.link/github.com/orbrx/jupyterlab-ripple/?path=demo.ipynb) without installing anything.
+Or try it online without installing anything: [JupyterLab](https://notebook.link/github.com/orbrx/jupyterlab-ripple/?path=demo.ipynb) | [Notebook](https://notebook.link/github/orbrx/jupyterlab-ripple/notebooks/?path=demo.ipynb).
 
 ## Getting Started
 
